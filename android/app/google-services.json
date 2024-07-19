@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "74653326179",
+    "project_id": "studentscanner-5ebb6",
+    "storage_bucket": "studentscanner-5ebb6.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:74653326179:android:6363416883957ed0d39156",
+        "android_client_info": {
+          "package_name": "curtin.edu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBBz-yPR_OQzFQy3jJ4rLKiwAIqX48lSXI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

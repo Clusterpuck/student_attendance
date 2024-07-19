@@ -1,0 +1,9 @@
+{
+  "projects": {
+    "scanner": "studentscanner-5ebb6",
+    "default": "studentscanner-5ebb6"
+  },
+  "targets": {},
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
+}
