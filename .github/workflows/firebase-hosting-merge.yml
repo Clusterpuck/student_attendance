@@ -17,3 +17,5 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_STUDENTSCANNER_5EBB6 }}
           channelId: live
           projectId: studentscanner-5ebb6
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
