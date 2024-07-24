@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -42,20 +44,78 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String _inputValue = "";
   final TextEditingController _controller = TextEditingController();
+  final MobileScannerController _scannerController = MobileScannerController(
+    // formats: [BarcodeFormat.code128],
+    // //specifies Curtin ID barcode type only
+    // autoStart: true,
+  );
+  StreamSubscription<Object?>? _subscription;
 
-  void _scanBarcode() {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+
+    _subscription = _scannerController.barcodes.listen((barcodeCapture) {
+      _handleBarcode(barcodeCapture);
+    });
+
+    unawaited(_scannerController.start());
+  }
+
+  void _handleBarcode(BarcodeCapture barcodeCapture) {
+    final String code = barcodeCapture.barcodes.first.rawValue ?? 'Unknown';
+    setState(() {
+      _inputValue = code;
+    });
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_scannerController.value.isInitialized) {
+      return;
+    }
+
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _subscription = _scannerController.barcodes.listen(_handleBarcode);
+        unawaited(_scannerController.start());
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.paused:
+        unawaited(_subscription?.cancel());
+        _subscription = null;
+        unawaited(_scannerController.stop());
+        break;
+      case AppLifecycleState.detached:
+      case AppLifecycleState.hidden:
+        break;
+    }
+  }
+
+  @override
+  Future<void> dispose() async {
+    WidgetsBinding.instance.removeObserver(this);
+    await _subscription?.cancel();
+    _subscription = null;
+    await _scannerController.dispose();
+    super.dispose();
+  }
+
+   void _scanBarcode() {
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ScannerScreen(
+          controller: _scannerController,
           onScan: (barcode) {
             setState(() {
               _inputValue = barcode;
             });
-            Navigator.pop(context); // Close the scanner screen
+            Navigator.pop(context);
           },
         ),
       ),
@@ -145,17 +205,18 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class ScannerScreen extends StatelessWidget {
+  final MobileScannerController controller;
   final void Function(String) onScan;
 
-  const ScannerScreen({super.key, required this.onScan});
+  const ScannerScreen({super.key, required this.controller, required this.onScan});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Scan Barcode')),
       body: MobileScanner(
-        controller: MobileScannerController(),
-        onDetect: (BarcodeCapture barcodeCapture) {
+        controller: controller,
+        onDetect: (barcodeCapture) {
           final String code = barcodeCapture.barcodes.first.rawValue ?? 'Unknown';
           onScan(code);
         },
