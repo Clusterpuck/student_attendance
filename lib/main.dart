@@ -171,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'Deploy Test 19/07/24 5:33PM You have entered:',
+              'Scanner Updated 24/07/24 17:02 You have entered:',
             ),
             Text(
               _inputValue,
