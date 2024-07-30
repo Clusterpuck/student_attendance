@@ -18,10 +18,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.amber),
+        colorScheme:
+            ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 70, 0, 47)),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'UniPASS Student Scanner'),
     );
   }
 }
@@ -45,6 +46,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
+  bool _isScannerVisible = false;
   String _inputValue = "";
   final TextEditingController _controller = TextEditingController();
   final MobileScannerController _scannerController = MobileScannerController(
@@ -64,6 +66,23 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     });
 
     unawaited(_scannerController.start());
+  }
+
+  void _toggleScanner() async {
+    if (_isScannerVisible) {
+      await _subscription?.cancel();
+      _subscription = null;
+      await _scannerController.stop();
+    } else {
+      await _requestCameraPermission();
+      _subscription = _scannerController.barcodes.listen((barcodeCapture) {
+        _handleBarcode(barcodeCapture);
+      });
+      await _scannerController.start();
+    }
+    setState(() {
+      _isScannerVisible = !_isScannerVisible;
+    });
   }
 
   void _handleBarcode(BarcodeCapture barcodeCapture) {
@@ -113,7 +132,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           controller: _scannerController,
           onScan: (barcode) {
             setState(() {
-              _inputValue = barcode.length > 8 ? barcode.substring(barcode.length - 8) : barcode;
+              _inputValue = barcode.length > 8
+                  ? barcode.substring(barcode.length - 8)
+                  : barcode;
             });
             Navigator.pop(context);
           },
@@ -159,17 +180,38 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.camera_alt),
-            onPressed: _scanBarcode,
-          ),
-        ],
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text("Test Unit: COMP1000", style: Theme.of(context).textTheme.headlineLarge ,),
+            Text("Session 1", style: Theme.of(context).textTheme.headlineMedium ,),
+            Container(
+              height: 300,
+              width: 600,
+               decoration: BoxDecoration(
+                border: Border.all(color: Colors.black, width: 2),
+              ),
+              child: _isScannerVisible
+                  ? MobileScanner(
+                      controller: _scannerController,
+                      onDetect: (barcodeCapture) {
+                        final String code =
+                            barcodeCapture.barcodes.first.rawValue ?? 'Unknown';
+                        setState(() {
+                          _inputValue = code.length > 8
+                              ? code.substring(code.length - 8)
+                              : code;
+                          _isScannerVisible = false;
+                        });
+                      },
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.camera_alt, size: 50),
+                      onPressed: _toggleScanner,
+                    ),
+            ),
             const Text(
               'Scanner Updated 30/07/24 You have entered:',
             ),
