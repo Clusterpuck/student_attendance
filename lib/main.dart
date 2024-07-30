@@ -47,7 +47,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   bool _isScannerVisible = false;
-  String _inputValue = "";
+  List<String> _inputValue = [];
   final TextEditingController _controller = TextEditingController();
   final MobileScannerController _scannerController = MobileScannerController(
     formats: [BarcodeFormat.code128],
@@ -88,7 +88,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void _handleBarcode(BarcodeCapture barcodeCapture) {
     final String code = barcodeCapture.barcodes.first.rawValue ?? 'Unknown';
     setState(() {
-      _inputValue = code.length > 8 ? code.substring(code.length - 8) : code;
+      String truncCode =
+          code.length > 8 ? code.substring(code.length - 8) : code;
+      _addToList(truncCode);
     });
   }
 
@@ -132,9 +134,10 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           controller: _scannerController,
           onScan: (barcode) {
             setState(() {
-              _inputValue = barcode.length > 8
+              String truncBarcode = barcode.length > 8
                   ? barcode.substring(barcode.length - 8)
                   : barcode;
+              _addToList(truncBarcode);
             });
             Navigator.pop(context);
           },
@@ -160,7 +163,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void _setInput() {
     setState(() {
       if (_controller.text.length == 8) {
-        _inputValue = _controller.text;
+        _addToList(_controller.text);
       } else {
         // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
@@ -174,6 +177,12 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
     });
   }
 
+  void _addToList(String newID) {
+    if (!_inputValue.contains(newID)) {
+      _inputValue.add(newID);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -185,63 +194,90 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Text("Test Unit: COMP1000", style: Theme.of(context).textTheme.headlineLarge ,),
-            Text("Session 1", style: Theme.of(context).textTheme.headlineMedium ,),
-            Container(
-              height: 300,
-              width: 600,
-               decoration: BoxDecoration(
-                border: Border.all(color: Colors.black, width: 2),
-              ),
-              child: _isScannerVisible
-                  ? MobileScanner(
-                      controller: _scannerController,
-                      onDetect: (barcodeCapture) {
-                        final String code =
-                            barcodeCapture.barcodes.first.rawValue ?? 'Unknown';
-                        setState(() {
-                          _inputValue = code.length > 8
-                              ? code.substring(code.length - 8)
-                              : code;
-                          _isScannerVisible = false;
-                        });
-                      },
-                    )
-                  : IconButton(
-                      icon: const Icon(Icons.camera_alt, size: 50),
-                      onPressed: _toggleScanner,
-                    ),
-            ),
-            const Text(
-              'Scanner Updated 30/07/24 You have entered:',
+            Text(
+              "Test Unit: COMP1000",
+              style: Theme.of(context).textTheme.headlineLarge,
             ),
             Text(
-              _inputValue,
+              "Session 1",
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _controller,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: 'Student Number',
+            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Column(children: [
+                const Text("Attendees"),
+                Text(
+                  _inputValue.length.toString(),
+                  style: const TextStyle(
+                    fontSize: 48, // Large font size
+                    fontWeight: FontWeight.bold, // Bold text
+                    color: Colors.black, // Text color
+                  ),
                 ),
-                keyboardType: TextInputType.number,
-                inputFormatters: <TextInputFormatter>[
-                  FilteringTextInputFormatter.digitsOnly,
-                  LengthLimitingTextInputFormatter(8)
-                ],
+              ]),
+              Container(
+                height: 300,
+                width: 600,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.black, width: 2),
+                ),
+                child: _isScannerVisible
+                    ? MobileScanner(
+                        controller: _scannerController,
+                        onDetect: (barcodeCapture) {
+                          final String code =
+                              barcodeCapture.barcodes.first.rawValue ??
+                                  'Unknown';
+                          setState(() {
+                            String truncCode = code.length > 8
+                                ? code.substring(code.length - 8)
+                                : code;
+                            _addToList(truncCode);
+                            _isScannerVisible = false;
+                          });
+                        },
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.camera_alt, size: 50),
+                        onPressed: _toggleScanner,
+                      ),
               ),
+            ]),
+            const Text(
+              'Last Scanned',
+            ),
+            Text(
+              _inputValue.isNotEmpty ? _inputValue.last : "No Input",
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            Row(
+              children: <Widget>[
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Student Number',
+                    ),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: <TextInputFormatter>[
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(8)
+                    ],
+                  ),
+                ),
+              ),
+               FloatingActionButton(
+                onPressed: _setInput,
+                tooltip: 'Submit',
+                child: const Icon(Icons.send),
+              ),
+            ],
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _setInput,
-        tooltip: 'Submit',
-        child: const Icon(Icons.send),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }
