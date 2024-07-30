@@ -48,9 +48,9 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   String _inputValue = "";
   final TextEditingController _controller = TextEditingController();
   final MobileScannerController _scannerController = MobileScannerController(
-    // formats: [BarcodeFormat.code128],
+    formats: [BarcodeFormat.code128],
     // //specifies Curtin ID barcode type only
-    // autoStart: true,
+    autoStart: true,
   );
   StreamSubscription<Object?>? _subscription;
 
@@ -69,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   void _handleBarcode(BarcodeCapture barcodeCapture) {
     final String code = barcodeCapture.barcodes.first.rawValue ?? 'Unknown';
     setState(() {
-      _inputValue = code;
+      _inputValue = code.length > 8 ? code.substring(code.length - 8) : code;
     });
   }
 
@@ -99,13 +99,13 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
   @override
   Future<void> dispose() async {
     WidgetsBinding.instance.removeObserver(this);
-    await _subscription?.cancel();
+    _subscription?.cancel();
     _subscription = null;
-    await _scannerController.dispose();
+    _scannerController.dispose();
     super.dispose();
   }
 
-   void _scanBarcode() {
+  void _scanBarcode() {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -208,7 +208,8 @@ class ScannerScreen extends StatelessWidget {
   final MobileScannerController controller;
   final void Function(String) onScan;
 
-  const ScannerScreen({super.key, required this.controller, required this.onScan});
+  const ScannerScreen(
+      {super.key, required this.controller, required this.onScan});
 
   @override
   Widget build(BuildContext context) {
@@ -217,7 +218,8 @@ class ScannerScreen extends StatelessWidget {
       body: MobileScanner(
         controller: controller,
         onDetect: (barcodeCapture) {
-          final String code = barcodeCapture.barcodes.first.rawValue ?? 'Unknown';
+          final String code =
+              barcodeCapture.barcodes.first.rawValue ?? 'Unknown';
           onScan(code);
         },
       ),
