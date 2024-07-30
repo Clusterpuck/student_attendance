@@ -113,7 +113,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           controller: _scannerController,
           onScan: (barcode) {
             setState(() {
-              _inputValue = barcode;
+              _inputValue = barcode.length > 8 ? barcode.substring(barcode.length - 8) : barcode;
             });
             Navigator.pop(context);
           },
@@ -171,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'Scanner Updated 24/07/24 17:02 You have entered:',
+              'Scanner Updated 30/07/24 You have entered:',
             ),
             Text(
               _inputValue,
