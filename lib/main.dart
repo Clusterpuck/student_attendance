@@ -202,46 +202,46 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
               "Session 1",
               style: Theme.of(context).textTheme.headlineMedium,
             ),
-            Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Column(children: [
-                const Text("Attendees"),
-                Text(
-                  _inputValue.length.toString(),
-                  style: const TextStyle(
-                    fontSize: 48, // Large font size
-                    fontWeight: FontWeight.bold, // Bold text
-                    color: Colors.black, // Text color
-                  ),
-                ),
-              ]),
-              Container(
-                height: 300,
-                width: 600,
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.black, width: 2),
-                ),
-                child: _isScannerVisible
-                    ? MobileScanner(
-                        controller: _scannerController,
-                        onDetect: (barcodeCapture) {
-                          final String code =
-                              barcodeCapture.barcodes.first.rawValue ??
-                                  'Unknown';
-                          setState(() {
-                            String truncCode = code.length > 8
-                                ? code.substring(code.length - 8)
-                                : code;
-                            _addToList(truncCode);
-                            _isScannerVisible = false;
-                          });
-                        },
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.camera_alt, size: 50),
-                        onPressed: _toggleScanner,
-                      ),
+            const Text("Attendees"),
+            Text(
+              _inputValue.length.toString(),
+              style: const TextStyle(
+                fontSize: 48, // Large font size
+                fontWeight: FontWeight.bold, // Bold text
+                color: Colors.black, // Text color
               ),
-            ]),
+            ),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                return Container(
+                  height: 350,
+                  width: constraints.maxWidth * 0.8,
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.black, width: 2),
+                  ),
+                  child: _isScannerVisible
+                      ? MobileScanner(
+                          controller: _scannerController,
+                          onDetect: (barcodeCapture) {
+                            final String code =
+                                barcodeCapture.barcodes.first.rawValue ??
+                                    'Unknown';
+                            setState(() {
+                              String truncCode = code.length > 8
+                                  ? code.substring(code.length - 8)
+                                  : code;
+                              _addToList(truncCode);
+                              _isScannerVisible = false;
+                            });
+                          },
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.camera_alt, size: 50),
+                          onPressed: _toggleScanner,
+                        ),
+                );
+              },
+            ),
             const Text(
               'Last Scanned',
             ),
@@ -251,29 +251,32 @@ class _MyHomePageState extends State<MyHomePage> with WidgetsBindingObserver {
             ),
             Row(
               children: <Widget>[
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Student Number',
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        border: OutlineInputBorder(),
+                        labelText: 'Student Number',
+                      ),
+                      keyboardType: TextInputType.number,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(8)
+                      ],
+                      onSubmitted: (String value) {
+                        _setInput();
+                      },
                     ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly,
-                      LengthLimitingTextInputFormatter(8)
-                    ],
                   ),
                 ),
-              ),
-               FloatingActionButton(
-                onPressed: _setInput,
-                tooltip: 'Submit',
-                child: const Icon(Icons.send),
-              ),
-            ],
+                FloatingActionButton(
+                  onPressed: _setInput,
+                  tooltip: 'Submit',
+                  child: const Icon(Icons.send),
+                ),
+              ],
             ),
           ],
         ),
